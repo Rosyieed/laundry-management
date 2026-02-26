@@ -1,0 +1,152 @@
+@model LaundryManagement.Models.ViewModels.UserCreateViewModel
+
+@{
+    ViewData["Title"] = "Tambah User";
+}
+
+@section PageHeader {
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Tambah User</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Master</a></li>
+                <li class="breadcrumb-item"><a asp-controller="MasterUser" asp-action="Index">User Management</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tambah User</li>
+            </ol>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-12">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title">Form Tambah User</h3>
+            </div>
+            
+            <form asp-controller="MasterUser" asp-action="Create" method="post" enctype="multipart/form-data">
+                <div class="card-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name"></label>
+                                <input asp-for="Name" class="form-control" placeholder="Masukkan nama lengkap" required />
+                                <span asp-validation-for="Name" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Username"></label>
+                                <input asp-for="Username" class="form-control" placeholder="Masukkan username" required />
+                                <span asp-validation-for="Username" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="PhoneNumber"></label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Masukkan nomor telepon" type="tel" required />
+                                <span asp-validation-for="PhoneNumber" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="ProfilePicture"></label>
+                                <input type="file" asp-for="ProfilePicture" accept="image/*" class="form-control" />
+                                <span asp-validation-for="ProfilePicture" class="text-danger text-sm"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Role"></label>
+                                <select asp-for="Role" class="form-control form-select" required>
+                                    <option value="">-- Pilih Role --</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Kasir">Kasir</option>
+                                    <option value="Owner">Owner</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Password"></label>
+                                <div class="input-group">
+                                    <input asp-for="Password" class="form-control" placeholder="Masukkan password" type="password" id="passwordInput" />
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="ConfirmPassword"></label>
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Konfirmasi password" type="password" id="confirmPasswordInput" />
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                        <i class="fa-solid fa-eye" id="eyeConfirmIcon"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger text-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-body -->
+
+                <div class="card-footer d-flex justify-content-end">
+                    <a asp-controller="MasterUser" asp-action="Index" class="btn btn-secondary btn-sm me-2"> 
+                        <i class="fa-solid fa-arrow-left"></i> Batal
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Toggle Password Visibility
+            $("#togglePassword").click(function() {
+                var passInput = $("#passwordInput");
+                var eyeIcon = $("#eyeIcon");
+                if (passInput.attr("type") === "password") {
+                    passInput.attr("type", "text");
+                    eyeIcon.removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    passInput.attr("type", "password");
+                    eyeIcon.removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+
+            // Toggle Confirm Password Visibility
+            $("#toggleConfirmPassword").click(function() {
+                var confirmPassInput = $("#confirmPasswordInput");
+                var eyeConfirmIcon = $("#eyeConfirmIcon");
+                if (confirmPassInput.attr("type") === "password") {
+                    confirmPassInput.attr("type", "text");
+                    eyeConfirmIcon.removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    confirmPassInput.attr("type", "password");
+                    eyeConfirmIcon.removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+        });
+    </script>
+}

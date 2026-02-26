@@ -1,0 +1,114 @@
+@model IEnumerable<User>
+
+@{
+    ViewData["Title"] = "User Management";
+}
+
+@section PageHeader {
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="mb-0">User Management</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Master</a></li>
+                <li class="breadcrumb-item active" aria-current="page">User Management</li>
+            </ol>
+        </div>
+    </div>
+}
+
+@* Table Data *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">User Management</h3>
+        <a asp-controller="MasterUser" asp-action="Create" class="btn btn-primary btn-sm float-end"><i class="fa-solid fa-plus"></i> Tambah</a>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover" id="myTable">
+            <thead>
+                <tr>
+                    <th class="text-center">No</th>
+                    <th class="text-center">Foto</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Username</th>
+                    <th class="text-center">Telepon</th>
+                    <th class="text-center">Role</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int i = 1;
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-center align-middle">@i</td>
+                        <td class="text-center align-middle">
+                            @if (!string.IsNullOrEmpty(item.image_path))
+                            {
+                                <img src="@item.image_path" alt="Foto Profil" class="img-thumbnail rounded-circle" style="width: 50px; height: 50px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 50px; height: 50px;">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                            }
+                        </td>
+                        <td class="text-left align-middle">@item.name</td>
+                        <td class="text-left align-middle">@item.username</td>
+                        <td class="text-left align-middle">@item.phone_number</td>
+                        <td class="text-center align-middle">
+                            @if (item.role == "Admin")
+                            {
+                                <span class="badge bg-primary">@item.role</span>
+                            }
+                            else if (item.role == "Kasir")
+                            {
+                                <span class="badge bg-info">@item.role</span>
+                            }
+                            else if (item.role == "Owner")
+                            {
+                                <span class="badge bg-warning text-dark">@item.role</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@item.role</span>
+                            }
+                        </td>
+                        <td class="text-center align-middle">
+                            <a asp-controller="MasterUser" asp-action="Edit" asp-route-id="@item.id" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen-to-square"></i> Ubah</a>
+                            <form asp-controller="MasterUser" asp-action="Delete" asp-route-id="@item.id" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#myTable').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.8/i18n/id.json"
+                }
+            });
+        });
+    </script>
+}

@@ -1,7 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Register the IFileUploadHelper interface mapping
+builder.Services.AddScoped<LaundryManagement.Helpers.IFileUploadHelper, LaundryManagement.Helpers.FileUploadHelper>();
+
+// Add DbContext
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
