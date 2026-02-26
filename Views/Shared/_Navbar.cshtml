@@ -148,30 +148,42 @@
             <!--begin::User Menu Dropdown-->
             <li class="nav-item dropdown user-menu">
               <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                @{
+                    var avatarPath = User.FindFirst("AvatarPath")?.Value;
+                    var fullName = User.FindFirst("FullName")?.Value ?? "User";
+                    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Role";
+                    
+                    var imageSrc = "~/adminlte/assets/img/user2-160x160.jpg";
+                    if (!string.IsNullOrEmpty(avatarPath))
+                    {
+                        imageSrc = avatarPath.StartsWith("/") || avatarPath.StartsWith("~") ? avatarPath : $"~/{avatarPath}";
+                    }
+                }
                 <img
-                  src="~/adminlte/assets/img/user2-160x160.jpg"
+                  src="@Url.Content(imageSrc)"
                   class="user-image rounded-circle shadow"
-                  alt="User Image"
+                  alt="@fullName"
                 />
-                <span class="d-none d-md-inline">Alexander Pierce</span>
+                <span class="d-none d-md-inline">@fullName</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                 <!--begin::User Image-->
-                <li class="user-header text-bg-primary">
+                <li class="user-header text-bg-secondary">
                   <img
-                    src="~/adminlte/assets/img/user2-160x160.jpg"
+                    src="@Url.Content(imageSrc)"
                     class="rounded-circle shadow"
-                    alt="User Image"
+                    alt="@fullName"
                   />
                   <p>
-                    Alexander Pierce - Web Developer
-                    <small>Member since Nov. 2023</small>
+                    @fullName - @role
                   </p>
                 </li>
                 <!--end::User Image-->
                 <!--begin::Menu Footer-->
                 <li class="user-footer">
-                  <a href="#" class="btn btn-default btn-flat float-end">Sign out</a>
+                  <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                      <button type="submit" class="btn btn-default btn-flat float-end">Sign out</button>
+                  </form>
                 </li>
                 <!--end::Menu Footer-->
               </ul>

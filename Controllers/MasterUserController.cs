@@ -7,6 +7,7 @@ using LaundryManagement.Helpers; // Added this using directive
 
 namespace LaundryManagement.Controllers
 {
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Owner")]
     [Route("master/user-management")]
     public class MasterUserController(AppDbContext _context, IFileUploadHelper _fileHelper) : Controller
     {

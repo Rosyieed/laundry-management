@@ -3,20 +3,35 @@
     var action = ViewContext.RouteData.Values["action"]?.ToString();
 }
 
+@section Styles {
+    <style>
+      .logo-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+}
+
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
         <!--begin::Sidebar Brand-->
         <div class="sidebar-brand">
           <!--begin::Brand Link-->
-          <a href="./index.html" class="brand-link">
+          <a asp-controller="Home" asp-action="Index" class="brand-link">
             <!--begin::Brand Image-->
-            <img
-              src="~/adminlte/assets/img/AdminLTELogo.png"
-              alt="AdminLTE Logo"
-              class="brand-image opacity-75 shadow"
-            />
+            <div class="logo-container">
+                <i class="fa-solid fa-shirt" style="color: white;"></i>
+            </div>
             <!--end::Brand Image-->
             <!--begin::Brand Text-->
-            <span class="brand-text fw-light">AdminLTE 4</span>
+            <span class="brand-text fw-light">Laundry Management</span>
             <!--end::Brand Text-->
           </a>
           <!--end::Brand Link-->
@@ -34,15 +49,18 @@
               data-accordion="false"
               id="navigation"
             >
-              <li li class="nav-header">MASTER</li>
-              <li class="nav-item">
-                 <a asp-controller="MasterUser"
-                    asp-action="Index"
-                    class="nav-link @(controller == "MasterUser" ? "active" : "")">
-                    <i class="nav-icon fa-solid fa-users"></i>
-                    <p>User Management</p>
-                </a>
-              </li>
+              <li class="nav-header">MASTER</li>
+              @if (User.IsInRole("Owner"))
+              {
+                  <li class="nav-item">
+                     <a asp-controller="MasterUser"
+                        asp-action="Index"
+                        class="nav-link @(controller == "MasterUser" ? "active" : "")">
+                        <i class="nav-icon fa-solid fa-users"></i>
+                        <p>User Management</p>
+                    </a>
+                  </li>
+              }
             </ul>
             <!--end::Sidebar Menu-->
           </nav>
