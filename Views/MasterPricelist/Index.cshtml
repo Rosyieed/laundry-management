@@ -1,0 +1,105 @@
+@model IEnumerable<LaundryManagement.Models.Entities.PricelistJasa>
+
+@{
+    ViewData["Title"] = "Pricelist Management";
+}
+
+@section PageHeader {
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Pricelist Management</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Master</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Pricelist Management</li>
+            </ol>
+        </div>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Pricelist Management</h3>
+        <a asp-controller="MasterPricelist" asp-action="Create" class="btn btn-primary btn-sm float-end"><i class="fa-solid fa-plus"></i> Tambah</a>
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered table-hover" id="myTable">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 5%">No</th>
+                    <th class="text-left">Nama Jasa</th>
+                    <th class="text-center">Tipe Layanan</th>
+                    <th class="text-right">Harga</th>
+                    <th class="text-center" style="width: 15%">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int i = 1;
+
+                    // Mengambil dictionary manual dari ViewBag mapping atau controller logic
+                    // Di sini kita mapping manual untuk visualisasi dari Enum int jika belum ada service Enum terpisah.
+                    string GetTipeLayanan(int typeId)
+                    {
+                        return typeId switch
+                        {
+                            1 => "Reguler",
+                            2 => "Express 2 Hari",
+                            3 => "Express 1 Hari",
+                            4 => "Express 6 Jam",
+                            _ => "Lainnya"
+                        };
+                    }
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-center align-middle">@i</td>
+                        <td class="text-left align-middle">@(item.Jasa != null ? item.Jasa.NamaJasa : "Tidak Diketahui")</td>
+                        <td class="text-center align-middle">
+                            <span class="badge bg-secondary">@GetTipeLayanan(item.TipeLayanan)</span>
+                        </td>
+                        <td class="text-right align-middle">@string.Format(new System.Globalization.CultureInfo("id-ID"), "Rp {0:N0}", item.Harga)</td>
+                        <td class="text-center align-middle">
+                            <a asp-controller="MasterPricelist" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen-to-square"></i> Ubah</a>
+                            <form asp-controller="MasterPricelist" asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pricelist ini?');">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#myTable').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.8/i18n/id.json"
+                }
+            });
+        });
+    </script>
+}
