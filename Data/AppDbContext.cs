@@ -10,5 +10,6 @@ namespace LaundryManagement.Data
         public DbSet<User> users { get; set; } = null!;
         public DbSet<Jasa> Jasas { get; set; } = null!;
         public DbSet<PricelistJasa> PricelistJasas { get; set; } = null!;
+        public DbSet<Customer> Customers { get; set; } = null!;
     }
 }

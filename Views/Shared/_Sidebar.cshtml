@@ -80,6 +80,17 @@
                     </a>
                   </li>
               }
+              @if (User.IsInRole("Owner") || User.IsInRole("Admin"))
+              {
+                  <li class="nav-item">
+                     <a asp-controller="MasterCustomer"
+                        asp-action="Index"
+                        class="nav-link @(controller == "MasterCustomer" ? "active" : "")">
+                        <i class="nav-icon fa-solid fa-address-book"></i>
+                        <p>Customer Management</p>
+                    </a>
+                  </li>
+              }
             </ul>
             <!--end::Sidebar Menu-->
           </nav>
