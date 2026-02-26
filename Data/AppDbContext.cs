@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using LaundryManagement.Models.Entities;
 
-public class AppDbContext : DbContext
+namespace LaundryManagement.Data
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
+    public class AppDbContext : DbContext
     {
-    }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<User> users { get; set; } = null!;
+        public DbSet<User> users { get; set; } = null!;
+        public DbSet<Jasa> Jasas { get; set; } = null!;
+        public DbSet<PricelistJasa> PricelistJasas { get; set; } = null!;
+    }
 }

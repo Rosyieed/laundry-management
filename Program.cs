@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using LaundryManagement.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

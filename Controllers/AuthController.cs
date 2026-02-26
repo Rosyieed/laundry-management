@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using LaundryManagement.Models.ViewModels;
+using LaundryManagement.Data;
 
 namespace LaundryManagement.Controllers
 {

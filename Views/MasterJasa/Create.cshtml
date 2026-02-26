@@ -1,0 +1,81 @@
+@model LaundryManagement.Models.ViewModels.JasaViewModel
+
+@{
+    ViewData["Title"] = "Tambah Jasa";
+}
+
+@section PageHeader {
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Tambah Jasa</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Master</a></li>
+                <li class="breadcrumb-item"><a asp-controller="MasterJasa" asp-action="Index">Jasa Management</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tambah</li>
+            </ol>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-12">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title">Form Tambah Jasa</h3>
+            </div>
+            
+            <form asp-controller="MasterJasa" asp-action="Create" method="post">
+                <div class="card-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-3">
+                                <label asp-for="NamaJasa" class="form-label">Nama Jasa</label>
+                                <input asp-for="NamaJasa" class="form-control" placeholder="Masukkan nama jasa" required />
+                                <span asp-validation-for="NamaJasa" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Satuan" class="form-label">Satuan</label>
+                                <select asp-for="Satuan" class="form-control form-select" required>
+                                    <option value="">-- Pilih Satuan --</option>
+                                    <option value="Kg">Kg</option>
+                                    <option value="Pcs">Pcs</option>
+                                    <option value="M">M</option>
+                                    <option value="M2">M2</option>
+                                </select>
+                                <span asp-validation-for="Satuan" class="text-danger text-sm"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-body -->
+
+                <div class="card-footer d-flex justify-content-end">
+                    <a asp-controller="MasterJasa" asp-action="Index" class="btn btn-secondary btn-sm me-2"> 
+                        <i class="fa-solid fa-arrow-left"></i> Batal
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

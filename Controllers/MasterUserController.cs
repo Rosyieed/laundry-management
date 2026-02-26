@@ -4,6 +4,7 @@ using LaundryManagement.Models.ViewModels;
 using System.Threading.Tasks;
 using BCrypt.Net;
 using LaundryManagement.Helpers; // Added this using directive
+using LaundryManagement.Data;
 
 namespace LaundryManagement.Controllers
 {
