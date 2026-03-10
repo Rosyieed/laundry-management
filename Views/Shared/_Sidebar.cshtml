@@ -49,7 +49,10 @@
               data-accordion="false"
               id="navigation"
             >
-              <li class="nav-header">MASTER</li>
+              @if (User.IsInRole("Owner") || User.IsInRole("Admin"))
+              {
+                  <li class="nav-header">MASTER</li>
+              }
               @if (User.IsInRole("Owner"))
               {
                   <li class="nav-item">
@@ -92,6 +95,33 @@
                   </li>
               }
             </ul>
+
+            <!-- TRANSAKSI -->
+            @if (User.IsInRole("Owner") || User.IsInRole("Admin") || User.IsInRole("Kasir"))
+            {
+                <ul
+                  class="nav sidebar-menu flex-column"
+                  data-lte-toggle="treeview"
+                  role="navigation"
+                  aria-label="Main navigation"
+                  data-accordion="false"
+                  id="navigation"
+                >
+                    <li class="nav-header">TRANSAKSI</li>
+                    <li class="nav-item">
+                        <a asp-controller="MasterTransaction" asp-action="Create" class="nav-link @(controller == "MasterTransaction" && action == "Create" ? "active" : "")">
+                            <i class="nav-icon fa-solid fa-cash-register"></i>
+                            <p>POS (Kasir)</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-controller="MasterTransaction" asp-action="Index" class="nav-link @(controller == "MasterTransaction" && (action == "Index" || action == "Edit" || action == "Print" || action == "Details") ? "active" : "")">
+                            <i class="nav-icon fa-solid fa-file-invoice-dollar"></i>
+                            <p>Histori Transaksi</p>
+                        </a>
+                    </li>
+                </ul>
+            }
             <!--end::Sidebar Menu-->
           </nav>
         </div>

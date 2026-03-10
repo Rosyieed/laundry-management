@@ -1,0 +1,172 @@
+@model LaundryManagement.Models.Entities.Transaction
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nota Transaksi - @Model.InvoiceNo</title>
+    <style>
+        /* CSS reset & enforcement spesifik untuk Thermal Printer 58mm */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 58mm;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #000;
+            background: #fff;
+        }
+        
+        /* Hilangkan elemen yang tidak perlu saat diprint */
+        @@media print {
+            @@page {
+                margin: 0;
+                size: 58mm 210mm;
+            }
+            body {
+                width: 58mm;
+                margin: 0;
+                padding: 0;
+            }
+            /* Hilangkan header/footer default browser */
+            header, footer, aside, nav, form, iframe, .menu, .hero, .adslot { 
+                display: none !important; 
+            }
+        }
+
+        /* Container utama */
+        .ticket {
+            width: 58mm;
+            padding: 2mm 5mm 5mm 5mm; 
+            box-sizing: border-box; /* Agar padding tidak menambah total width 58mm */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .header p {
+            margin: 2px 0;
+            font-size: 11px;
+        }
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+        .info {
+            margin-bottom: 5px;
+        }
+        .info p {
+            margin: 2px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .items th, .items td {
+            text-align: left;
+            vertical-align: top;
+            padding: 2px 0;
+        }
+        .items .qty {
+            width: 15%;
+            text-align: center;
+        }
+        .items .price {
+            width: 35%;
+            text-align: right;
+        }
+        .summary {
+            margin-top: 5px;
+        }
+        .summary p {
+            margin: 2px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary .grand-total {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body onload="window.print();">
+    <div class="ticket">
+        <div class="header">
+            <h3>ALZA LAUNDRY</h3>
+            <p>Jl. Contoh Alamat No. 123</p>
+            <p>Telp: 0812-3456-7890</p>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="info">
+            <p><span>No:</span> <span>@Model.InvoiceNo</span></p>
+            <p><span>Tgl:</span> <span>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</span></p>
+            <p><span>Kasir:</span> <span>@Model.CreatedBy</span></p>
+            <p><span>Plg:</span> <span>@(Model.Customer?.Name)</span></p>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="items">
+            <table>
+                @foreach (var detail in Model.TransactionDetails)
+                {
+                    <tr>
+                        <td colspan="3">@detail.PricelistJasa?.Jasa?.NamaJasa</td>
+                    </tr>
+                    <tr>
+                        <td class="qty">@detail.Qty.ToString("G29")</td>
+                        <td>x @detail.PriceAtTime.ToString("N0")</td>
+                        <td class="price">@detail.SubTotal.ToString("N0")</td>
+                    </tr>
+                    @if (detail.Discount > 0)
+                    {
+                        <tr>
+                            <td colspan="2"><small>(Diskon)</small></td>
+                            <td class="price">-@detail.Discount.ToString("N0")</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="summary">
+            <p><span>Subtotal:</span> <span>Rp @Model.TotalPrice.ToString("N0")</span></p>
+            @if (Model.TotalDiscount > 0)
+            {
+                <p><span>Diskon:</span> <span>-Rp @Model.TotalDiscount.ToString("N0")</span></p>
+            }
+            <p class="grand-total"><span>Total:</span> <span>Rp @Model.GrandTotal.ToString("N0")</span></p>
+            <p><span>Bayar:</span> <span>@Model.PaymentMethod (@Model.PaymentStatus)</span></p>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="footer">
+            <p>Terima kasih atas kepercayaan Anda.</p>
+            <p>Barang yang tidak diambil  > 1 bulan</p>
+            <p>bukan tanggung jawab kami.</p>
+        </div>
+    </div>
+    <!-- Menutup tab secara otomatis setelah diprint (opsional) -->
+    <!-- <script>window.onafterprint = function() { window.close(); }</script> -->
+</body>
+</html>

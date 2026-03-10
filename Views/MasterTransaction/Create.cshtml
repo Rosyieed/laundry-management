@@ -1,0 +1,477 @@
+@model LaundryManagement.Models.ViewModels.TransactionViewModel
+
+@{
+    ViewData["Title"] = "Point of Sale";
+    var pricelistsInfo = ViewBag.Pricelists; // Will be passed as JSON to JS
+}
+
+@section PageHeader {
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Point of Sale (Kasir)</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="MasterTransaction" asp-action="Index">Transaksi</a></li>
+                <li class="breadcrumb-item active" aria-current="page">POS</li>
+            </ol>
+        </div>
+    </div>
+}
+
+<form asp-controller="MasterTransaction" asp-action="Create" method="post" id="posForm">
+    <div class="row">
+        <!-- KIRI: Layanan & Keranjang -->
+        <div class="col-md-8">
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Keranjang Layanan</h3>
+                </div>
+                <div class="card-body">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Input Pencarian / Pemilihan Jasa -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <select id="selectPricelist" class="form-control form-select select2">
+                                <option value="">-- Pilih Layanan / Pricelist --</option>
+                                @foreach (var item in ViewBag.Pricelists)
+                                {
+                                    <option value="@item.Id" data-price="@item.Price" data-satuan="@item.Satuan">
+                                        @item.DisplayText</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" id="btnAddItem" class="btn btn-success w-100">
+                                <i class="fa-solid fa-plus"></i> Tambah ke Keranjang
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Keranjang -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="cartTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Layanan</th>
+                                    <th style="width: 15%">Harga (Rp)</th>
+                                    <th style="width: 15%">Qty</th>
+                                    <th style="width: 15%">Diskon (Rp)</th>
+                                    <th style="width: 20%">Subtotal (Rp)</th>
+                                    <th style="width: 5%">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartBody">
+                                <!-- Rows will be appended here via JS -->
+                                <tr id="emptyRow">
+                                    <td colspan="6" class="text-center text-muted">Belum ada layanan yang dipilih.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Preview Nota Card -->
+        <div class="card card-warning card-outline mt-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-receipt me-1"></i> Preview Nota (Thermal 58mm)</h3>
+            </div>
+            <div class="card-body d-flex justify-content-center bg-light">
+                <div id="thermalPreview"
+                    style="background: white; width: 58mm; padding: 5mm; border: 1px dashed #ccc; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #000; min-height: 200px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+                    <div style="text-align: center; margin-bottom: 5px;">
+                        <h3 style="margin: 0; font-size: 16px; font-weight: bold;">ALZA LAUNDRY</h3>
+                        <p style="margin: 2px 0; font-size: 11px;">Jl. Contoh Alamat No. 123</p>
+                    </div>
+
+                    <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
+
+                    <div style="margin-bottom: 5px;">
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>No:</span>
+                            <span>INV-PREVIEW</span></p>
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Tgl:</span>
+                            <span>@DateTime.Now.ToString("dd/MM/yyyy")</span></p>
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Kasir:</span>
+                            <span>@(User.FindFirst("FullName")?.Value ?? "System")</span></p>
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Plg:</span> <span
+                                id="previewCustomer">-</span></p>
+                    </div>
+
+                    <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
+
+                    <div id="previewItems" style="width: 100%;">
+                        <div style="text-align: center; color: #999;font-style:italic;">Keranjang Kosong</div>
+                    </div>
+
+                    <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
+
+                    <div style="margin-top: 5px;">
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Subtotal:</span>
+                            <span id="previewSubtotal">Rp 0</span></p>
+                        <div id="previewDiscountRow"
+                            style="display:none; justify-content: space-between; margin: 2px 0;">
+                            <span>Diskon:</span> <span id="previewDiscount">-Rp 0</span>
+                        </div>
+                        <p
+                            style="margin: 2px 0; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+                            <span>Total:</span> <span id="previewGrandTotal">Rp 0</span></p>
+                        <p style="margin: 2px 0; display: flex; justify-content: space-between;"><span>Bayar:</span>
+                            <span id="previewPayment">Cash (Unpaid)</span></p>
+                    </div>
+
+                    <div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
+
+                    <div style="text-align: center; margin-top: 10px; font-size: 10px;">
+                        <p style="margin:0;">Terima kasih atas <br /> kepercayaan Anda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KANAN: Detail Pelanggan & Pembayaran -->
+    <div class="col-md-4">
+        <!-- Card Pelanggan -->
+        <div class="card card-info card-outline mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-user me-1"></i> Pelanggan</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" asp-for="IsNewCustomer" id="IsNewCustomerCheck">
+                        <label class="form-check-label" for="IsNewCustomerCheck">Pelanggan Baru</label>
+                    </div>
+                </div>
+
+                <div id="existingCustomerSection">
+                    <div class="form-group">
+                        <label asp-for="CustomerId" class="form-label">Pilih Pelanggan</label>
+                        <select asp-for="CustomerId" asp-items="ViewBag.Customers"
+                            class="form-control form-select select2" style="width: 100%;">
+                            <option value="">-- Pilih Pelanggan --</option>
+                        </select>
+                        <span asp-validation-for="CustomerId" class="text-danger text-sm"></span>
+                    </div>
+                </div>
+
+                <div id="newCustomerSection" style="display: none;">
+                    <div class="form-group mb-2">
+                        <label asp-for="NewCustomerName" class="form-label">Nama Pelanggan Baru</label>
+                        <input asp-for="NewCustomerName" class="form-control" placeholder="Masukkan nama..." />
+                        <span asp-validation-for="NewCustomerName" class="text-danger text-sm"></span>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NewCustomerPhone" class="form-label">No. WhatsApp/HP</label>
+                        <input asp-for="NewCustomerPhone" class="form-control" placeholder="08..." type="tel" />
+                        <span asp-validation-for="NewCustomerPhone" class="text-danger text-sm"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="NewCustomerAddress" class="form-label">Alamat Lengkap</label>
+                        <textarea asp-for="NewCustomerAddress" class="form-control" rows="2" placeholder="Masukkan alamat lengkap..."></textarea>
+                        <span asp-validation-for="NewCustomerAddress" class="text-danger text-sm"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Tagihan & Simpan -->
+        <div class="card card-success card-outline">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-money-bill-wave me-1"></i> Ringkasan & Pembayaran</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-6"><strong>Subtotal:</strong></div>
+                    <div class="col-6 text-end"><span id="lblSubtotal">Rp 0</span></div>
+                </div>
+                <div class="row mb-2 text-danger">
+                    <div class="col-6"><strong>Diskon:</strong></div>
+                    <div class="col-6 text-end">- <span id="lblDiscount">Rp 0</span></div>
+                </div>
+                <hr />
+                <div class="row mb-3">
+                    <div class="col-5">
+                        <h4><strong>TOTAL:</strong></h4>
+                    </div>
+                    <div class="col-7 text-end text-success">
+                        <h4 id="lblGrandTotal"><strong>Rp 0</strong></h4>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="PaymentStatus" class="form-label">Status Pembayaran</label>
+                    <select asp-for="PaymentStatus" class="form-control form-select">
+                        <option value="Unpaid">Belum Lunas (Unpaid)</option>
+                        <option value="Paid">Lunas (Paid)</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="PaymentMethod" class="form-label">Metode Pembayaran</label>
+                    <select asp-for="PaymentMethod" class="form-control form-select">
+                        <option value="Cash">Cash (Tunai)</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="Transfer">Transfer Bank</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="OrderDate" class="form-label">Tanggal Order</label>
+                            <input asp-for="OrderDate" class="form-control" type="date"
+                                value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="EstimatedFinishDate" class="form-label">Estimasi Selesai</label>
+                            <input asp-for="EstimatedFinishDate" class="form-control" type="date" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label asp-for="Notes" class="form-label">Catatan Trx</label>
+                    <textarea asp-for="Notes" class="form-control" rows="2" placeholder="opsional..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 btn-lg" id="btnProses">
+                    <i class="fa-solid fa-check-circle me-1"></i> Proses Transaksi
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            // Inisialisasi select2
+            if ($.fn.select2) {
+                $('.select2').select2();
+            }
+
+            // --- Toggle Customer Baru ---
+            $('#IsNewCustomerCheck').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#existingCustomerSection').hide();
+                    $('#newCustomerSection').slideDown();
+                    // Matikan select2 validasi saat hidden bisa jadi masalah, clear value nya
+                    $('#CustomerId').val('').trigger('change');
+                } else {
+                    $('#newCustomerSection').hide();
+                    $('#existingCustomerSection').slideDown();
+                    $('#NewCustomerName').val('');
+                    $('#NewCustomerPhone').val('');
+                    $('#NewCustomerAddress').val('');
+                }
+            });
+
+            // --- POS Cart Logic ---
+            var itemIndex = 0;
+
+            function formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
+            }
+
+            function calculateTotals() {
+                let subTotal = 0;
+                let discount = 0;
+                let previewHtml = '';
+
+                $('#cartBody tr.item-row').each(function () {
+                    let price = parseFloat($(this).find('.price-input').val()) || 0;
+                    let qty = parseFloat($(this).find('.qty-input').val()) || 0;
+                    let disc = parseFloat($(this).find('.disc-input').val()) || 0;
+
+                    let lineTotal = (price * qty) - disc;
+                    if (lineTotal < 0) lineTotal = 0;
+
+                    $(this).find('.line-subtotal').text(formatRupiah(lineTotal));
+
+                    subTotal += (price * qty);
+                    discount += disc;
+
+                    // Mengambil nama item tanpa element input (hidden)
+                    let itemName = $(this).find('td:eq(0)').clone().children().remove().end().text().trim();
+                    let priceFmt = formatRupiah(price).replace('Rp', '').trim();
+                    let lineTotalFmt = formatRupiah(lineTotal).replace('Rp', '').trim();
+
+                    previewHtml += `
+                            <div style="margin-bottom: 2px;">
+                                <div style="margin: 0;">${itemName}</div>
+                                <div style="display: flex; justify-content: space-between; margin: 0;">
+                                    <span style="width: 15%; text-align: center;">${qty}</span>
+                                    <span style="width: 35%;">x ${priceFmt}</span>
+                                    <span style="width: 50%; text-align: right;">${lineTotalFmt}</span>
+                                </div>
+                            </div>
+                        `;
+                    if (disc > 0) {
+                        let discFmt = formatRupiah(disc).replace('Rp', '').trim();
+                        previewHtml += `
+                                <div style="display: flex; justify-content: space-between; margin: 0;">
+                                    <span><small>(Diskon)</small></span>
+                                    <span>-${discFmt}</span>
+                                </div>
+                            `;
+                    }
+                });
+
+                if (previewHtml === '') {
+                    previewHtml = '<div style="text-align: center; color: #999;font-style:italic;">Keranjang Kosong</div>';
+                }
+                $('#previewItems').html(previewHtml);
+
+                let grandTotal = subTotal - discount;
+                if (grandTotal < 0) grandTotal = 0;
+
+                $('#lblSubtotal').text(formatRupiah(subTotal));
+                $('#lblDiscount').text(formatRupiah(discount));
+                $('#lblGrandTotal').text(formatRupiah(grandTotal));
+
+                // Update Preview
+                $('#previewSubtotal').text(formatRupiah(subTotal));
+                if (discount > 0) {
+                    $('#previewDiscountRow').css('display', 'flex');
+                    $('#previewDiscount').text('-' + formatRupiah(discount));
+                } else {
+                    $('#previewDiscountRow').css('display', 'none');
+                }
+                $('#previewGrandTotal').text(formatRupiah(grandTotal));
+            }
+
+            function updatePreviewDetails() {
+                var paymentMethod = $('#PaymentMethod').val();
+                var paymentStatus = $('#PaymentStatus').val();
+                $('#previewPayment').text(paymentMethod + ' (' + paymentStatus + ')');
+
+                var isNew = $('#IsNewCustomerCheck').is(':checked');
+                if (isNew) {
+                    $('#previewCustomer').text($('#NewCustomerName').val() || '-');
+                } else {
+                    var selectedOpt = $('#CustomerId option:selected');
+                    if (selectedOpt.val()) {
+                        $('#previewCustomer').text(selectedOpt.text().split('(')[0].trim());
+                    } else {
+                        $('#previewCustomer').text('-');
+                    }
+                }
+            }
+
+            // Inisialisasi awal
+            updatePreviewDetails();
+
+            // Trigger preview details update
+            $('#PaymentMethod, #PaymentStatus').change(updatePreviewDetails);
+            $('#CustomerId').on('change.select2', updatePreviewDetails);
+            $('#NewCustomerName, #IsNewCustomerCheck').on('input change', updatePreviewDetails);
+
+            $('#btnAddItem').click(function () {
+                let select = $('#selectPricelist');
+                let option = select.find('option:selected');
+
+                let id = option.val();
+                let name = option.text();
+                let price = option.data('price');
+                let satuan = option.data('satuan') || "Qty";
+
+                if (!id) {
+                    alert('Silakan pilih layanan terlebih dahulu!');
+                    return;
+                }
+
+                // Cek apakah item sudah ada di keranjang untuk menghindari duplikat (opsional)
+                let exists = false;
+                $('.item-id-input').each(function () {
+                    if ($(this).val() == id) {
+                        exists = true;
+                    }
+                });
+
+                if (exists) {
+                    alert('Layanan tersebut sudah ada di keranjang. Silakan sesuaikan Qty-nya.');
+                    return;
+                }
+
+                $('#emptyRow').hide();
+
+                let rowHtml = `
+                        <tr class="item-row">
+                            <td class="align-middle">
+                                ${name}
+                                <input type="hidden" name="Details[${itemIndex}].PricelistJasaId" class="item-id-input" value="${id}" />
+                                <input type="hidden" name="Details[${itemIndex}].PriceAtTime" class="price-input" value="${price}" />
+                            </td>
+                            <td class="align-middle">${formatRupiah(price)}</td>
+                            <td class="align-middle">
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="any" min="0.1" class="form-control qty-input" name="Details[${itemIndex}].Qty" value="1" required>
+                                    <span class="input-group-text">${satuan}</span>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <input type="number" step="any" min="0" class="form-control form-control-sm disc-input" name="Details[${itemIndex}].Discount" value="0">
+                            </td>
+                            <td class="align-middle line-subtotal fw-bold text-end">
+                                ${formatRupiah(price)}
+                            </td>
+                            <td class="text-center align-middle">
+                                <button type="button" class="btn btn-danger btn-sm btn-remove"><i class="fa-solid fa-xmark"></i></button>
+                            </td>
+                        </tr>
+                    `;
+
+                $('#cartBody').append(rowHtml);
+                itemIndex++;
+                calculateTotals();
+
+                // Reset dropdown select
+                select.val('').trigger('change');
+            });
+
+            // Perhitungan ulang saat Qty atau Diskon berubah
+            $(document).on('input', '.qty-input, .disc-input', function () {
+                calculateTotals();
+            });
+
+            // Hapus item dari cart
+            $(document).on('click', '.btn-remove', function () {
+                $(this).closest('tr').remove();
+                calculateTotals();
+
+                // Re-index names to fix ASP.NET Core MVC Model Binding array gaps
+                $('#cartBody tr.item-row').each(function (idx) {
+                    $(this).find('.item-id-input').attr('name', `Details[${idx}].PricelistJasaId`);
+                    $(this).find('.price-input').attr('name', `Details[${idx}].PriceAtTime`);
+                    $(this).find('.qty-input').attr('name', `Details[${idx}].Qty`);
+                    $(this).find('.disc-input').attr('name', `Details[${idx}].Discount`);
+                });
+                // Update itemIndex
+                itemIndex = $('#cartBody tr.item-row').length;
+
+                if (itemIndex === 0) {
+                    $('#emptyRow').show();
+                }
+            });
+
+            // Safety Form Submit
+            $('#posForm').submit(function (e) {
+                if ($('#cartBody tr.item-row').length === 0) {
+                    e.preventDefault();
+                    alert('Keranjang belanja masih kosong!');
+                    return false;
+                }
+            });
+        });
+    </script>
+}

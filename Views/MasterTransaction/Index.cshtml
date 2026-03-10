@@ -1,0 +1,137 @@
+@model IEnumerable<LaundryManagement.Models.Entities.Transaction>
+
+@{
+    ViewData["Title"] = "Histori Transaksi";
+}
+
+@section PageHeader {
+    <div class="row">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Histori Transaksi</h3>
+        </div>
+        <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Transaksi</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Histori</li>
+            </ol>
+        </div>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["PrintInvoiceId"] != null)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var printWindow = window.open('@Url.Action("Print", "MasterTransaction", new { id = TempData["PrintInvoiceId"] })', '_blank');
+            if (!printWindow) {
+                alert('Tolong izinkan pop-up untuk mencetak nota secara otomatis.');
+            }
+        });
+    </script>
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title mt-1">Daftar Transaksi</h3>
+        <a asp-controller="MasterTransaction" asp-action="Create" class="btn btn-primary btn-sm float-end">
+            <i class="fa-solid fa-plus"></i> Kasir (POS)
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="transactionTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="text-center" style="width: 5%">No</th>
+                        <th class="text-center">Tgl Order</th>
+                        <th class="text-center">Invoice</th>
+                        <th>Pelanggan</th>
+                        <th class="text-end">Total Biaya</th>
+                        <th class="text-center">Pembayaran</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center" style="width: 10%">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int i = 1;
+
+                        string BadgePayment(string status) {
+                            return status == "Paid" ? "bg-success" : "bg-warning text-dark";
+                        }
+                        
+                        string BadgeStatus(string status) {
+                            return status switch {
+                                "Pending" => "bg-secondary",
+                                "Process" => "bg-info text-dark",
+                                "Finished" => "bg-primary",
+                                "Taken" => "bg-success",
+                                _ => "bg-secondary"
+                            };
+                        }
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center align-middle">@i</td>
+                            <td class="text-center align-middle">@item.OrderDate.ToString("dd MMM yyyy")</td>
+                            <td class="text-center align-middle fw-bold">@item.InvoiceNo</td>
+                            <td class="align-middle">
+                                @(item.Customer != null ? item.Customer.Name : "-") <br />
+                                <small class="text-muted"><i class="fa-brands fa-whatsapp"></i> @(item.Customer?.PhoneNumber)</small>
+                            </td>
+                            <td class="text-end align-middle fw-bold text-success">
+                                @string.Format(new System.Globalization.CultureInfo("id-ID"), "Rp {0:N0}", item.GrandTotal)
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge @BadgePayment(item.PaymentStatus)">@item.PaymentStatus</span> <br/>
+                                <small class="text-muted">@item.PaymentMethod</small>
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge @BadgeStatus(item.Status)">@item.Status</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm" title="Lihat Detail Pekerjaan"><i class="fa-solid fa-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm shadow-sm" title="Edit Transaksi"><i class="fa-solid fa-edit"></i></a>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#transactionTable').DataTable({
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.8/i18n/id.json"
+                },
+                order: [[1, 'desc']], // Urut berdasarkan tanggal order Descending
+                columnDefs: [
+                    { targets: 0, orderable: false }
+                ]
+            });
+        });
+    </script>
+}
